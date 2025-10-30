@@ -3,9 +3,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:grillsngravy/core/constants/colors.dart';
 import 'package:grillsngravy/presentation/screens/auth/login_screen.dart';
 import 'package:grillsngravy/presentation/screens/auth/register_screen.dart';
+import 'package:grillsngravy/presentation/screens/cart/cart_screen.dart';
 import 'package:grillsngravy/presentation/screens/categories/categories_screen.dart';
 import 'package:grillsngravy/presentation/screens/home/home_screen.dart';
 import 'package:grillsngravy/presentation/screens/offers/offers_screen.dart';
+import 'package:grillsngravy/presentation/screens/product_detail/product_detail_screen.dart';
 import 'package:grillsngravy/presentation/screens/search/search_screen.dart';
 import 'package:grillsngravy/presentation/screens/splash/splash_screen.dart';
 
@@ -24,14 +26,13 @@ class MyApp extends StatelessWidget {
       title: 'Grills & Gravy',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.light(
+        colorScheme: const ColorScheme.light(
           primary: AppColors.primary,
           onPrimary: AppColors.onPrimary,
-          background: AppColors.background,
-          onBackground: AppColors.onBackground,
-          surface: AppColors.surface,
-          onSurface: AppColors.onSurface,
+          surface: AppColors.background,
+          onSurface: AppColors.onBackground,
           error: AppColors.error,
+          background: AppColors.background,
         ),
         useMaterial3: true,
         fontFamily: 'Poppins',
@@ -39,6 +40,12 @@ class MyApp extends StatelessWidget {
           backgroundColor: AppColors.background,
           elevation: 0,
           iconTheme: IconThemeData(color: AppColors.onBackground),
+          titleTextStyle: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.onBackground,
+          ),
         ),
         scaffoldBackgroundColor: AppColors.background,
       ),
@@ -51,6 +58,10 @@ class MyApp extends StatelessWidget {
         '/categories': (context) => const CategoriesScreen(),
         '/search': (context) => const SearchScreen(),
         '/offers': (context) => const OffersScreen(),
+        '/cart': (context) => const CartScreen(),
+        '/product-detail': (context) => ProductDetailScreen(
+          productId: ModalRoute.of(context)!.settings.arguments as String,
+        ),
       },
     );
   }

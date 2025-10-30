@@ -7,6 +7,9 @@ import 'package:grillsngravy/core/constants/strings.dart';
 import 'package:grillsngravy/core/widgets/product_card.dart';
 import 'package:grillsngravy/data/models/category_model.dart';
 import 'package:grillsngravy/data/models/product_model.dart';
+import 'package:grillsngravy/presentation/screens/categories/categories_screen.dart';
+import 'package:grillsngravy/presentation/screens/offers/offers_screen.dart';
+import 'package:grillsngravy/presentation/screens/search/search_screen.dart';
 import 'package:grillsngravy/presentation/widgets/bottom_nav_bar.dart';
 import 'package:grillsngravy/presentation/widgets/side_drawer.dart';
 import 'package:grillsngravy/services/firebase_service.dart';
@@ -20,8 +23,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-
-  // Banner related variables
   final BannerController _bannerController = BannerController();
 
   @override
@@ -36,22 +37,31 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  // Fixed navigation - don't change index when navigating to other screens
   void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    if (index == _currentIndex) return; // Already on this tab
 
     switch (index) {
       case 0:
+      // Already on home, do nothing
         break;
       case 1:
-        Navigator.pushNamed(context, '/categories');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CategoriesScreen()),
+        );
         break;
       case 2:
-        Navigator.pushNamed(context, '/search');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SearchScreen()),
+        );
         break;
       case 3:
-        Navigator.pushNamed(context, '/offers');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const OffersScreen()),
+        );
         break;
     }
   }
@@ -85,13 +95,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               _buildSearchBar(),
               const SizedBox(height: 8),
-              // Separate banner widget that won't affect the rest of the screen
               BannerCarousel(controller: _bannerController),
               const SizedBox(height: 16),
               _buildCategoriesSection(),
               const SizedBox(height: 16),
               _buildFeaturedProductsSection(),
-              const SizedBox(height: 20), // Extra space at bottom
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -102,6 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  // ... (Keep all your existing _build methods exactly as they are)
+  // They are working perfectly, no changes needed
 
   Widget _buildSearchBar() {
     return Padding(
@@ -292,7 +304,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () {
         // Navigate to category products
-        // Navigator.pushNamed(context, '/category-products', arguments: category.id);
       },
       child: Container(
         width: 80,
@@ -332,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 8),
             SizedBox(
-              height: 32, // Fixed height for category name
+              height: 32,
               child: Text(
                 category.name,
                 style: GoogleFonts.poppins(
@@ -567,11 +578,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _navigateToProductDetail(ProductModel product) {
     // Navigate to product detail screen
-    // Navigator.pushNamed(context, '/product-detail', arguments: product.id);
   }
 }
 
-// Separate controller for banner to manage its state independently
+// Banner Controller and Carousel (keep as is)
 class BannerController {
   final PageController pageController = PageController();
   Timer? _timer;
@@ -613,13 +623,11 @@ class BannerController {
 
   void onBannersLoaded(int totalBanners) {
     _totalBanners = totalBanners;
-    // Restart timer when banners are loaded
     _timer?.cancel();
     _startAutoScroll();
   }
 }
 
-// Separate banner carousel widget
 class BannerCarousel extends StatelessWidget {
   final BannerController controller;
 

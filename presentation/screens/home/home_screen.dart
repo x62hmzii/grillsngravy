@@ -20,44 +20,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  int _currentBannerIndex = 0;
-  final PageController _bannerController = PageController();
-  Timer? _bannerTimer;
-  int _totalBanners = 0;
+
+  // Banner related variables
+  final BannerController _bannerController = BannerController();
 
   @override
   void initState() {
     super.initState();
-    _startAutoScroll();
+    _bannerController.init();
   }
 
   @override
   void dispose() {
-    _bannerTimer?.cancel();
     _bannerController.dispose();
     super.dispose();
-  }
-
-  void _startAutoScroll() {
-    _bannerTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      if (_bannerController.hasClients && _totalBanners > 0) {
-        int nextPage = _currentBannerIndex + 1;
-        if (nextPage >= _totalBanners) {
-          nextPage = 0;
-        }
-        _bannerController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
-  }
-
-  void _onBannerPageChanged(int index) {
-    setState(() {
-      _currentBannerIndex = index;
-    });
   }
 
   void _onTabTapped(int index) {
@@ -109,7 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               _buildSearchBar(),
               const SizedBox(height: 8),
-              _buildBannerCarousel(),
+              // Separate banner widget that won't affect the rest of the screen
+              BannerCarousel(controller: _bannerController),
               const SizedBox(height: 16),
               _buildCategoriesSection(),
               const SizedBox(height: 16),
@@ -151,185 +128,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBannerCarousel() {
-    return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: FirebaseService.getBanners(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildBannerShimmer();
-        }
-
-        if (snapshot.hasError) {
-          print('Banner Error: ${snapshot.error}');
-          return _buildDefaultBanner();
-        }
-
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return _buildDefaultBanner();
-        }
-
-        final banners = snapshot.data!;
-        _totalBanners = banners.length;
-
-        // Cancel existing timer and start new one
-        _bannerTimer?.cancel();
-        _startAutoScroll();
-
-        return Column(
-          children: [
-            SizedBox(
-              height: 160,
-              child: PageView.builder(
-                controller: _bannerController,
-                onPageChanged: _onBannerPageChanged,
-                itemCount: banners.length,
-                itemBuilder: (context, index) {
-                  final banner = banners[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Stack(
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: banner['imageUrl'] as String,
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: AppColors.greyLight,
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              color: AppColors.greyLight,
-                              child: const Icon(Icons.error),
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [
-                                  Colors.black.withOpacity(0.6),
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (banner['title'] != null && banner['title'].toString().isNotEmpty)
-                            Positioned(
-                              left: 16,
-                              bottom: 16,
-                              right: 16, // Added right constraint
-                              child: Text(
-                                banner['title'] as String,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (banners.length > 1)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(banners.length, (index) {
-                  return Container(
-                    width: 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _currentBannerIndex == index
-                          ? AppColors.primary
-                          : AppColors.primary.withOpacity(0.3),
-                    ),
-                  );
-                }),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildBannerShimmer() {
-    return Container(
-      height: 160,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.greyLight,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primary,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDefaultBanner() {
-    return Container(
-      height: 160,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary.withOpacity(0.8),
-            AppColors.primary,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.restaurant,
-              color: AppColors.onPrimary,
-              size: 40,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Grills & Gravy',
-              style: GoogleFonts.poppins(
-                color: AppColors.onPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Quality Food Is The Most Important Thing\nIn Our Life',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: AppColors.onPrimary.withOpacity(0.9),
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -593,7 +391,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 0.72, // Slightly adjusted for better fit
+                  childAspectRatio: 0.72,
                 ),
                 itemCount: products.length,
                 itemBuilder: (context, index) {
@@ -770,5 +568,241 @@ class _HomeScreenState extends State<HomeScreen> {
   void _navigateToProductDetail(ProductModel product) {
     // Navigate to product detail screen
     // Navigator.pushNamed(context, '/product-detail', arguments: product.id);
+  }
+}
+
+// Separate controller for banner to manage its state independently
+class BannerController {
+  final PageController pageController = PageController();
+  Timer? _timer;
+  int _currentIndex = 0;
+  int _totalBanners = 0;
+  ValueNotifier<int> currentIndexNotifier = ValueNotifier<int>(0);
+
+  void init() {
+    _startAutoScroll();
+  }
+
+  void dispose() {
+    _timer?.cancel();
+    pageController.dispose();
+    currentIndexNotifier.dispose();
+  }
+
+  void _startAutoScroll() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (pageController.hasClients && _totalBanners > 0) {
+        int nextPage = _currentIndex + 1;
+        if (nextPage >= _totalBanners) {
+          nextPage = 0;
+        }
+        pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  void onPageChanged(int index, int totalBanners) {
+    _currentIndex = index;
+    _totalBanners = totalBanners;
+    currentIndexNotifier.value = index;
+  }
+
+  void onBannersLoaded(int totalBanners) {
+    _totalBanners = totalBanners;
+    // Restart timer when banners are loaded
+    _timer?.cancel();
+    _startAutoScroll();
+  }
+}
+
+// Separate banner carousel widget
+class BannerCarousel extends StatelessWidget {
+  final BannerController controller;
+
+  const BannerCarousel({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: FirebaseService.getBanners(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildBannerShimmer();
+        }
+
+        if (snapshot.hasError) {
+          print('Banner Error: ${snapshot.error}');
+          return _buildDefaultBanner();
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return _buildDefaultBanner();
+        }
+
+        final banners = snapshot.data!;
+        controller.onBannersLoaded(banners.length);
+
+        return Column(
+          children: [
+            SizedBox(
+              height: 160,
+              child: PageView.builder(
+                controller: controller.pageController,
+                onPageChanged: (index) => controller.onPageChanged(index, banners.length),
+                itemCount: banners.length,
+                itemBuilder: (context, index) {
+                  final banner = banners[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Stack(
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: banner['imageUrl'] as String,
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: AppColors.greyLight,
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: AppColors.greyLight,
+                              child: const Icon(Icons.error),
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.6),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (banner['title'] != null && banner['title'].toString().isNotEmpty)
+                            Positioned(
+                              left: 16,
+                              bottom: 16,
+                              right: 16,
+                              child: Text(
+                                banner['title'] as String,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (banners.length > 1)
+              ValueListenableBuilder<int>(
+                valueListenable: controller.currentIndexNotifier,
+                builder: (context, currentIndex, child) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(banners.length, (index) {
+                      return Container(
+                        width: 8,
+                        height: 8,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: currentIndex == index
+                              ? AppColors.primary
+                              : AppColors.primary.withOpacity(0.3),
+                        ),
+                      );
+                    }),
+                  );
+                },
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBannerShimmer() {
+    return Container(
+      height: 160,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDefaultBanner() {
+    return Container(
+      height: 160,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withOpacity(0.8),
+            AppColors.primary,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.restaurant,
+              color: AppColors.onPrimary,
+              size: 40,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Grills & Gravy',
+              style: GoogleFonts.poppins(
+                color: AppColors.onPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Quality Food Is The Most Important Thing\nIn Our Life',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: AppColors.onPrimary.withOpacity(0.9),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -184,7 +184,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 20),
                 // Password Field
-                // Password Field
                 CustomTextField(
                   controller: _passwordController,
                   labelText: AppStrings.password,
@@ -202,56 +201,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     }
                     if (value.length < 6) {
                       return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-// Confirm Password Field
-                CustomTextField(
-                  controller: _confirmPasswordController,
-                  labelText: 'Confirm Password',
-                  prefixIcon: Icons.lock_outline,
-                  suffixIcon: _obscureConfirmPassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  onSuffixIconPressed: () {
-                    setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-                  },
-                  obscureText: _obscureConfirmPassword,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 20),
                 // Confirm Password Field
-                // Password Field
-                CustomTextField(
-                  controller: _passwordController,
-                  labelText: AppStrings.password,
-                  prefixIcon: Icons.lock_outline,
-                  suffixIcon: _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  onSuffixIconPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  obscureText: _obscurePassword,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-// Confirm Password Field
                 CustomTextField(
                   controller: _confirmPasswordController,
                   labelText: 'Confirm Password',

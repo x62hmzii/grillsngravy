@@ -37,7 +37,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   void _loadProduct() async {
     try {
-      _productSubscription = FirebaseService.getFeaturedProductsFixed().listen(
+      _productSubscription = FirebaseService.getFeaturedProducts().listen(
             (products) {
           final product = products.firstWhere(
                 (p) => p.id == widget.productId,

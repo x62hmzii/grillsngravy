@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:grillsngravy/core/constants/colors.dart';
 import 'package:grillsngravy/core/constants/strings.dart';
+import 'package:grillsngravy/services/firebase_service.dart';
 
 class SideDrawer extends StatelessWidget {
   const SideDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = FirebaseService.currentUser != null;
+    final userEmail = FirebaseService.currentUser?.email;
+    final userName = userEmail?.split('@')[0] ?? 'User';
+
     return Drawer(
       backgroundColor: AppColors.background,
       child: Column(
@@ -70,7 +75,7 @@ class SideDrawer extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Welcome Guest',
+                            isLoggedIn ? 'Welcome, $userName' : 'Welcome Guest',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               color: AppColors.greyDark,
@@ -124,8 +129,7 @@ class SideDrawer extends StatelessWidget {
                       const SizedBox(height: 12),
                       GestureDetector(
                         onTap: () {
-                          // Implement call functionality
-                          _showContactOptions(context);
+                          _makePhoneCall();
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -158,40 +162,35 @@ class SideDrawer extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                // User Section
-                _buildSectionHeader('My Account'),
-                _buildDrawerItem(
-                  icon: Icons.person_outline,
-                  title: 'My Profile',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to profile screen
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.shopping_bag_outlined,
-                  title: 'My Orders',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to orders screen
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.favorite_outline,
-                  title: 'Favorites',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to favorites screen
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.location_on_outlined,
-                  title: 'My Addresses',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to addresses screen
-                  },
-                ),
+                // User Section - Only show if logged in
+                if (isLoggedIn) ...[
+                  _buildSectionHeader('My Account'),
+                  _buildDrawerItem(
+                    icon: Icons.person_outline,
+                    title: 'My Profile',
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Navigate to profile screen
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.shopping_bag_outlined,
+                    title: 'My Orders',
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Navigate to orders screen
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.location_on_outlined,
+                    title: 'My Addresses',
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Navigate to addresses screen
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                ],
 
                 // App Information Section
                 _buildSectionHeader('About Us'),
@@ -211,16 +210,8 @@ class SideDrawer extends StatelessWidget {
                     // Navigate to help screen
                   },
                 ),
-                _buildDrawerItem(
-                  icon: Icons.contact_support_outlined,
-                  title: 'Contact Us',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showContactOptions(context);
-                  },
-                ),
 
-                // Legal Section
+                // Legal Section (Required for Play Store)
                 _buildSectionHeader('Legal'),
                 _buildDrawerItem(
                   icon: Icons.privacy_tip_outlined,
@@ -236,22 +227,6 @@ class SideDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     // Navigate to terms screen
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.assignment_return_outlined,
-                  title: 'Returns & Refunds',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to returns policy screen
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.feedback_outlined,
-                  title: 'Feedback',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to feedback screen
                   },
                 ),
 
@@ -276,7 +251,7 @@ class SideDrawer extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Ver. 2.1.2 (79)',
+                            'Ver. 1.0.0',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               color: AppColors.greyDark,
@@ -293,7 +268,7 @@ class SideDrawer extends StatelessWidget {
             ),
           ),
 
-          // Login/Register Section
+          // Login/Register or Logout Section
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -304,7 +279,44 @@ class SideDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            child: Row(
+            child: isLoggedIn
+                ? Column(
+              children: [
+                Text(
+                  'Logged in as $userEmail',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _logout(context);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    'Logout',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            )
+                : Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
@@ -386,126 +398,65 @@ class SideDrawer extends StatelessWidget {
     );
   }
 
-  void _showContactOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.background,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          ),
-          child: Wrap(
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Contact Us',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onBackground,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildContactOption(
-                    icon: Icons.phone,
-                    title: 'Call Us',
-                    subtitle: 'Speak directly with our team',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _makePhoneCall();
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  void _logout(BuildContext context) async {
+    try {
+      await FirebaseService.signOut();
+      // Clear cart when logging out
+      // You might want to add this to your CartProvider
 
+      // Navigate to auth screen and clear all routes
+      Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/auth',
+              (route) => false
+      );
 
-  Widget _buildContactOption({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(vertical: 8),
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
-          shape: BoxShape.circle,
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logged out successfully'),
+          backgroundColor: AppColors.success,
         ),
-        child: Icon(
-          icon,
-          color: AppColors.primary,
-          size: 20,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logout failed: ${e.toString()}'),
+          backgroundColor: AppColors.error,
         ),
-      ),
-      title: Text(
-        title,
-        style: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: AppColors.onBackground,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          color: AppColors.grey,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: AppColors.grey,
-      ),
-      onTap: onTap,
-    );
+      );
+    }
   }
 
   void _makePhoneCall() {
     // Implement phone call functionality
+    // You can use url_launcher package for this
     // const phoneNumber = 'tel:+1234567890';
     // launchUrl(Uri.parse(phoneNumber));
+
+    // For now, show a dialog
+    showDialog(
+      context: _getContext(),
+      builder: (context) => AlertDialog(
+        title: const Text('Contact Us'),
+        content: const Text('Call us at: +1 234 567 890\nWe are available 24/7 for your queries.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
-  void _sendEmail() {
-    // Implement email functionality
-    // const email = 'mailto:support@grillsngravy.com';
-    // launchUrl(Uri.parse(email));
+  // Helper method to get context for dialogs
+  BuildContext _getContext() {
+    // This is a workaround to get context for dialogs
+    // In a real app, you might want to pass context differently
+    return Navigator.of(_getKey().currentContext!).context;
   }
 
-  void _startLiveChat() {
-    // Implement live chat functionality
-  }
-
-  void _openLocation() {
-    // Implement location functionality
-    // const location = 'https://maps.google.com/?q=Grills+Gravy';
-    // launchUrl(Uri.parse(location));
+  GlobalKey<NavigatorState> _getKey() {
+    return GlobalKey<NavigatorState>();
   }
 }

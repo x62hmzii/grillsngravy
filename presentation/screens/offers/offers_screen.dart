@@ -51,7 +51,7 @@ class _OffersScreenState extends State<OffersScreen> {
       ),
       body: SafeArea(
         child: StreamBuilder<List<ProductModel>>(
-          stream: FirebaseService.getFeaturedProductsFixed(),
+          stream: FirebaseService.getFeaturedProducts(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return _buildLoadingState();

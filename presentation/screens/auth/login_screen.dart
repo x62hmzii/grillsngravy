@@ -4,6 +4,7 @@ import 'package:grillsngravy/core/constants/colors.dart';
 import 'package:grillsngravy/core/constants/strings.dart';
 import 'package:grillsngravy/core/widgets/custom_button.dart';
 import 'package:grillsngravy/core/widgets/custom_textfield.dart';
+import 'package:grillsngravy/services/firebase_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,15 +18,42 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      // Simulate login process
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => _isLoading = false);
+
+      try {
+        await FirebaseService.signInWithEmail(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+
+        if (!mounted) return;
+
         Navigator.pushReplacementNamed(context, '/home');
-      });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login successful!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
     }
   }
 
@@ -97,7 +125,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   labelText: AppStrings.password,
                   prefixIcon: Icons.lock_outline,
-                  obscureText: true,
+                  suffixIcon: _obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  onSuffixIconPressed: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                  obscureText: _obscurePassword,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';

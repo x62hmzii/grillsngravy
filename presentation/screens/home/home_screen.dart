@@ -378,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 12),
           StreamBuilder<List<ProductModel>>(
-            stream: FirebaseService.getFeaturedProductsFixed(),
+            stream: FirebaseService.getFeaturedProducts(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return _buildProductsShimmer();

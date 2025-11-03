@@ -1,4 +1,4 @@
-# 🍖 Grills & Gravy - Restaurant Mobile App
+# 🍖 Grills & Gravy  Restaurant Mobile App
 
 A professional, production ready Flutter mobile application for Grills & Gravy restaurant with complete e-commerce functionality, Firebase backend, and modern UI/UX.
 

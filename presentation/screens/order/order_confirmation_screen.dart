@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:grillsngravy/core/constants/colors.dart';
 import 'package:grillsngravy/core/widgets/custom_button.dart';
-import 'package:grillsngravy/services/firebase_service.dart';
 
 class OrderConfirmationScreen extends StatefulWidget {
   final String orderId;
@@ -14,6 +13,13 @@ class OrderConfirmationScreen extends StatefulWidget {
 }
 
 class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
+  // Helper method for safe order ID display
+  String _getOrderDisplayId(String orderId) {
+    if (orderId.isEmpty) return 'N/A';
+    // Use the full ID if it's short, otherwise take first 8 characters
+    return orderId.length <= 8 ? orderId : orderId.substring(0, 8).toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +38,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                   color: AppColors.success.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.check_circle_outline,
                   color: AppColors.success,
                   size: 60,
@@ -54,7 +60,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
               // Order ID
               Text(
-                'Order #${widget.orderId.substring(0, 8).toUpperCase()}',
+                'Order #${_getOrderDisplayId(widget.orderId)}',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: AppColors.greyDark,

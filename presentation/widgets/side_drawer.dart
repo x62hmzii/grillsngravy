@@ -54,7 +54,7 @@ class SideDrawer extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.restaurant,
                         color: AppColors.onPrimary,
                         size: 24,
@@ -101,7 +101,7 @@ class SideDrawer extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.phone,
                             color: AppColors.onPrimary,
                             size: 16,
@@ -170,7 +170,7 @@ class SideDrawer extends StatelessWidget {
                     title: 'My Profile',
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigate to profile screen
+                      Navigator.pushNamed(context, '/profile');
                     },
                   ),
                   _buildDrawerItem(
@@ -178,7 +178,7 @@ class SideDrawer extends StatelessWidget {
                     title: 'My Orders',
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigate to orders screen
+                      Navigator.pushNamed(context, '/orders');
                     },
                   ),
                   _buildDrawerItem(
@@ -389,7 +389,7 @@ class SideDrawer extends StatelessWidget {
           color: AppColors.onBackground,
         ),
       ),
-      trailing: Icon(
+      trailing: const Icon(
         Icons.chevron_right,
         size: 18,
         color: AppColors.grey,

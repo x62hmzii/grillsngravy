@@ -20,6 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isLoading = false;
   bool _isEditing = false;
+  bool _isInitialLoading = true;
 
   @override
   void initState() {
@@ -27,13 +28,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserData();
   }
 
-  void _loadUserData() {
+  Future<void> _loadUserData() async {
     final user = FirebaseService.currentUser;
     if (user != null) {
-      _emailController.text = user.email ?? '';
-      // Note: You might want to fetch additional user data from Firestore
-      // For now, we'll just show the email
+      try {
+        // Load user data from Firestore
+        final userData = await FirebaseService.getUserData(user.uid);
+
+        if (userData != null) {
+          setState(() {
+            _fullNameController.text = userData.fullName;
+            _phoneController.text = userData.phone ?? '';
+            _emailController.text = userData.email;
+          });
+        } else {
+          // Fallback to auth user data
+          _emailController.text = user.email ?? '';
+        }
+      } catch (e) {
+        print('Error loading user data: $e');
+        // Fallback to auth user data
+        _emailController.text = user.email ?? '';
+      }
     }
+
+    setState(() {
+      _isInitialLoading = false;
+    });
   }
 
   void _toggleEdit() {
@@ -47,9 +68,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() => _isLoading = true);
 
       try {
-        // Here you would update user data in Firestore
-        // For now, we'll just show a success message
-        await Future.delayed(const Duration(seconds: 1)); // Simulate API call
+        final user = FirebaseService.currentUser;
+        if (user != null) {
+          // Update profile in Firebase
+          await FirebaseService.updateUserProfile(
+            userId: user.uid,
+            fullName: _fullNameController.text.trim(),
+            phone: _phoneController.text.trim(),
+          );
+        }
 
         setState(() => _isEditing = false);
 
@@ -72,11 +99,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _cancelEdit() {
+    // Reload original data
+    _loadUserData();
+    setState(() {
+      _isEditing = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseService.currentUser;
     final userEmail = user?.email ?? 'Not logged in';
-    final userName = userEmail.split('@')[0];
+    final displayName = _fullNameController.text.isEmpty
+        ? userEmail.split('@')[0]
+        : _fullNameController.text;
+
+    if (_isInitialLoading) {
+      return _buildLoadingState();
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -90,14 +131,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         centerTitle: true,
         actions: [
-          if (!_isEditing)
+          if (!_isEditing && user != null)
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               onPressed: _toggleEdit,
             ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: user == null
+          ? _buildNotLoggedInState()
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
@@ -129,7 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          userName,
+                          displayName,
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -174,6 +217,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your full name';
+                      }
+                      if (value.length < 2) {
+                        return 'Name must be at least 2 characters';
                       }
                       return null;
                     },
@@ -228,7 +274,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Expanded(
                     child: CustomButton(
                       text: 'Cancel',
-                      onPressed: _toggleEdit,
+                      onPressed: _cancelEdit,
                       variant: ButtonVariant.outlined,
                     ),
                   ),
@@ -250,6 +296,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primary,
+      ),
+    );
+  }
+
+  Widget _buildNotLoggedInState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.login,
+            color: AppColors.grey,
+            size: 64,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Please login to view your profile',
+            style: GoogleFonts.poppins(
+              color: AppColors.grey,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 20),
+          CustomButton(
+            text: 'Login Now',
+            onPressed: () {
+              Navigator.pushNamed(context, '/auth');
+            },
+          ),
+        ],
       ),
     );
   }

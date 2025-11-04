@@ -10,6 +10,7 @@ import 'package:grillsngravy/core/widgets/custom_textfield.dart';
 import 'package:grillsngravy/data/models/order_model.dart';
 import 'package:grillsngravy/presentation/providers/cart_provider.dart';
 import 'package:grillsngravy/services/firebase_service.dart';
+import 'package:grillsngravy/services/location_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartItem> cartItems;
@@ -26,16 +27,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
+  final _areaController = TextEditingController();
+  final _houseNoController = TextEditingController();
   final _landmarkController = TextEditingController();
 
   bool _isLoading = false;
   bool _useSavedAddress = false;
   ShippingAddress? _savedAddress;
+  bool _isGettingLocation = false;
 
   @override
   void initState() {
     super.initState();
+    _loadUserData();
     _loadSavedAddress();
+    _getCurrentLocation();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = FirebaseService.currentUser;
+      if (user != null) {
+        final userData = await FirebaseService.getUserData(user.uid);
+        if (userData != null) {
+          _fullNameController.text = userData.fullName;
+          _phoneController.text = userData.phone ?? '';
+        }
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    }
   }
 
   Future<void> _loadSavedAddress() async {
@@ -62,9 +83,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _landmarkController.text = address.landmark ?? '';
   }
 
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isGettingLocation = true;
+    });
+
+    try {
+      final location = await LocationService.getSimplifiedAddress();
+      setState(() {
+        _cityController.text = location['city'] ?? 'Sahiwal';
+        _areaController.text = location['area'] ?? 'Shahdab Town';
+
+        // Auto-fill address with location data
+        final fullAddress = location['fullAddress'];
+        if (fullAddress != null && fullAddress.isNotEmpty) {
+          _addressController.text = fullAddress;
+        } else {
+          _addressController.text = '${location['area']}, ${location['city']}';
+        }
+      });
+    } catch (e) {
+      print('Error getting location: $e');
+      // Fallback to default values
+      setState(() {
+        _cityController.text = 'Sahiwal';
+        _areaController.text = 'Shahdab Town';
+        _addressController.text = 'Shahdab Town, Sahiwal';
+      });
+    } finally {
+      setState(() {
+        _isGettingLocation = false;
+      });
+    }
+  }
+
   double get _subtotal => widget.cartItems.fold(
       0.0,
-          (sum, item) => sum + item.totalPrice
+          (sum, item) => sum + (item.product.price * item.quantity)
   );
 
   double get _deliveryFee => 100.0;
@@ -339,6 +394,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           _fillAddressForm(_savedAddress!);
                         } else {
                           _clearForm();
+                          _getCurrentLocation(); // Reload location when not using saved address
                         }
                       },
                       activeColor: AppColors.primary,
@@ -361,6 +417,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           // Address Form
           if (!_useSavedAddress) ...[
+            // Name and Phone (Auto-filled from user data)
             CustomTextField(
               controller: _fullNameController,
               labelText: 'Full Name',
@@ -389,42 +446,63 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               },
             ),
             const SizedBox(height: 16),
-            CustomTextField(
-              controller: _addressController,
-              labelText: 'Delivery Address',
-              prefixIcon: Icons.location_on_outlined,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your delivery address';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
+
+            // Location Auto-fill Section
             Row(
               children: [
                 Expanded(
-                  child: CustomTextField(
+                  child: _buildReadOnlyTextField(
                     controller: _cityController,
                     labelText: 'City',
-                    prefixIcon: Icons.location_city_outlined,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your city';
-                      }
-                      return null;
-                    },
+                    icon: Icons.location_city_outlined,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: CustomTextField(
-                    controller: _landmarkController,
-                    labelText: 'Landmark (Optional)',
-                    prefixIcon: Icons.flag_outlined,
+                  child: _buildReadOnlyTextField(
+                    controller: _areaController,
+                    labelText: 'Area/Town',
+                    icon: Icons.place_outlined,
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: _isGettingLocation
+                  ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primary,
+                ),
+              )
+                  : TextButton.icon(
+                onPressed: _getCurrentLocation,
+                icon: const Icon(Icons.refresh, size: 16),
+                label: Text(
+                  'Refresh Location',
+                  style: GoogleFonts.poppins(fontSize: 12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // House Number and Street
+            _buildHouseNumberField(),
+            const SizedBox(height: 16),
+
+            // Complete Address
+            _buildAddressField(),
+            const SizedBox(height: 16),
+
+            // Landmark
+            CustomTextField(
+              controller: _landmarkController,
+              labelText: 'Landmark (Optional)',
+              prefixIcon: Icons.flag_outlined,
             ),
           ] else if (_savedAddress != null) ...[
             // Show saved address
@@ -468,6 +546,75 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  // Custom read-only text field
+  Widget _buildReadOnlyTextField({
+    required TextEditingController controller,
+    required String labelText,
+    required IconData icon,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixIcon: Icon(icon),
+        border: const OutlineInputBorder(),
+        filled: true,
+        fillColor: AppColors.greyLight.withOpacity(0.3),
+        enabled: false, // This makes it read-only
+      ),
+      style: GoogleFonts.poppins(
+        color: AppColors.onBackground,
+      ),
+    );
+  }
+
+  // Custom house number field with onChanged
+  Widget _buildHouseNumberField() {
+    return TextFormField(
+      controller: _houseNoController,
+      decoration: const InputDecoration(
+        labelText: 'House No. & Street (Optional)',
+        prefixIcon: Icon(Icons.home_outlined),
+        border: OutlineInputBorder(),
+      ),
+      style: GoogleFonts.poppins(
+        color: AppColors.onBackground,
+      ),
+      onChanged: (value) {
+        // Update complete address when house number is entered
+        if (value.isNotEmpty) {
+          _addressController.text =
+          '$value, ${_areaController.text}, ${_cityController.text}';
+        } else {
+          _addressController.text =
+          '${_areaController.text}, ${_cityController.text}';
+        }
+      },
+    );
+  }
+
+  // Custom address field with maxLines
+  Widget _buildAddressField() {
+    return TextFormField(
+      controller: _addressController,
+      decoration: const InputDecoration(
+        labelText: 'Complete Delivery Address',
+        prefixIcon: Icon(Icons.location_on_outlined),
+        border: OutlineInputBorder(),
+      ),
+      style: GoogleFonts.poppins(
+        color: AppColors.onBackground,
+      ),
+      maxLines: 2,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your delivery address';
+        }
+        return null;
+      },
     );
   }
 
@@ -554,7 +701,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           // Item Total
           Text(
-            'RS ${item.totalPrice.toInt()}',
+            'RS ${(item.product.price * item.quantity).toInt()}',
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -571,7 +718,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _phoneController.clear();
     _addressController.clear();
     _cityController.clear();
+    _areaController.clear();
+    _houseNoController.clear();
     _landmarkController.clear();
+    _loadUserData(); // Reload user data after clearing
+    _getCurrentLocation(); // Reload location after clearing
   }
 
   @override
@@ -580,6 +731,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _phoneController.dispose();
     _addressController.dispose();
     _cityController.dispose();
+    _areaController.dispose();
+    _houseNoController.dispose();
     _landmarkController.dispose();
     super.dispose();
   }

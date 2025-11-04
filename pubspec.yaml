@@ -1,0 +1,45 @@
+name: grillsngravy
+description: Grills & Gravy - Restaurant Mobile App
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  provider: ^6.1.1
+  google_fonts: ^6.1.0
+  flutter_launcher_icons: ^0.13.1
+  smooth_page_indicator: ^1.1.0
+  shimmer: ^3.0.0
+  cached_network_image: ^3.3.0
+  firebase_core: ^2.24.0
+  firebase_auth: ^4.17.3
+  cloud_firestore: ^4.13.3
+  firebase_storage: ^11.5.3
+  image_picker: ^1.0.4
+  geocoding: ^2.1.1  # Location se address
+  geolocator: ^10.1.1
+  permission_handler: ^11.0.1
+dependency_overrides:
+  geolocator_android: 4.5.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/animations/
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"

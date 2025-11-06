@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grillsngravy_admin/presentation/screens/users/user_management_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:grillsngravy_admin/core/constants/colors.dart';
@@ -6,6 +7,7 @@ import 'package:grillsngravy_admin/core/constants/strings.dart';
 import 'package:grillsngravy_admin/presentation/providers/dashboard_provider.dart';
 import 'package:grillsngravy_admin/presentation/widgets/admin_bottom_nav_bar.dart';
 import 'package:grillsngravy_admin/presentation/widgets/admin_side_drawer.dart';
+import 'package:grillsngravy_admin/presentation/screens/orders/order_list_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -38,9 +40,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
       case 1: // Products
         return _buildPlaceholderScreen('Products Management', Icons.fastfood_outlined);
       case 2: // Orders
-        return _buildPlaceholderScreen('Orders Management', Icons.shopping_bag_outlined);
+        return const OrderListScreen();
       case 3: // Users
-        return _buildPlaceholderScreen('Users Management', Icons.people_outlined);
+        return const UserManagementScreen();
       default:
         return _buildDashboardContent();
     }

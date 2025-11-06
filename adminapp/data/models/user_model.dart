@@ -29,23 +29,34 @@ class UserModel {
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
-    Timestamp timestamp;
+    DateTime createdAt;
 
-    // Handle different timestamp formats
-    if (map['createdAt'] is Timestamp) {
-      timestamp = map['createdAt'] as Timestamp;
-    } else if (map['createdAt'] is Map) {
-      timestamp = Timestamp(map['createdAt']['_seconds'], map['createdAt']['_nanoseconds']);
-    } else {
-      timestamp = Timestamp.now();
+    try {
+      if (map['createdAt'] is Timestamp) {
+        createdAt = (map['createdAt'] as Timestamp).toDate();
+      } else if (map['createdAt'] is Map) {
+        final timestampMap = map['createdAt'] as Map<String, dynamic>;
+        final seconds = timestampMap['_seconds'] as int? ?? 0;
+        final nanoseconds = timestampMap['_nanoseconds'] as int? ?? 0;
+        createdAt = DateTime.fromMillisecondsSinceEpoch(
+          seconds * 1000 + (nanoseconds ~/ 1000000),
+        );
+      } else if (map['createdAt'] is String) {
+        createdAt = DateTime.parse(map['createdAt'] as String);
+      } else {
+        createdAt = DateTime.now();
+      }
+    } catch (e) {
+      print('Error parsing createdAt: $e');
+      createdAt = DateTime.now();
     }
 
     return UserModel(
-      id: map['id']?.toString() ?? '',
+      id: map['id']?.toString() ?? map['uid']?.toString() ?? '',
       email: map['email']?.toString() ?? '',
-      fullName: map['fullName']?.toString() ?? '',
+      fullName: map['fullName']?.toString() ?? map['displayName']?.toString() ?? 'Unknown User',
       phone: map['phone']?.toString(),
-      createdAt: timestamp.toDate(),
+      createdAt: createdAt,
       isAdmin: map['isAdmin'] ?? false,
     );
   }

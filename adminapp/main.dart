@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:grillsngravy_admin/presentation/providers/order_provider.dart';
+import 'package:grillsngravy_admin/presentation/screens/orders/order_list_screen.dart';
+import 'package:grillsngravy_admin/presentation/screens/users/user_management_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:grillsngravy_admin/core/constants/colors.dart';
 import 'package:grillsngravy_admin/presentation/providers/auth_provider.dart';
@@ -7,6 +10,7 @@ import 'package:grillsngravy_admin/presentation/providers/dashboard_provider.dar
 import 'package:grillsngravy_admin/presentation/screens/auth/admin_login_screen.dart';
 import 'package:grillsngravy_admin/presentation/screens/dashboard/admin_dashboard.dart';
 import 'package:grillsngravy_admin/presentation/screens/splash/splash_screen.dart';
+import 'package:grillsngravy_admin/presentation/providers/user_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +27,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
       ],
       child: MaterialApp(
         title: 'Grills & Gravy Admin',
@@ -63,6 +69,8 @@ class MyApp extends StatelessWidget {
           '/splash': (context) => const SplashScreen(),
           '/login': (context) => const AdminLoginScreen(),
           '/dashboard': (context) => const AdminDashboard(),
+          '/users': (context) => const UserManagementScreen(),
+          '/orders': (context) => const OrderListScreen(),
         },
       ),
     );

@@ -27,6 +27,35 @@ class OrderModel {
     required this.shippingAddress,
   });
 
+  // Add this copyWith method
+  OrderModel copyWith({
+    String? id,
+    String? userId,
+    List<OrderItem>? items,
+    double? subtotal,
+    double? deliveryFee,
+    double? total,
+    String? status,
+    String? paymentMethod,
+    DateTime? createdAt,
+    DateTime? deliveredAt,
+    ShippingAddress? shippingAddress,
+  }) {
+    return OrderModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      items: items ?? this.items,
+      subtotal: subtotal ?? this.subtotal,
+      deliveryFee: deliveryFee ?? this.deliveryFee,
+      total: total ?? this.total,
+      status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      createdAt: createdAt ?? this.createdAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      shippingAddress: shippingAddress ?? this.shippingAddress,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,

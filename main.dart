@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:grillsngravy/data/models/cart_model.dart';
+import 'package:grillsngravy/presentation/screens/categories/category_products_screen.dart';
 import 'package:grillsngravy/presentation/screens/order/order_confirmation_screen.dart';
 import 'package:grillsngravy/presentation/screens/order/orders_screen.dart';
 import 'package:grillsngravy/presentation/screens/profile/profile_screen.dart';
@@ -17,6 +18,8 @@ import 'package:grillsngravy/presentation/screens/product_detail/product_detail_
 import 'package:grillsngravy/presentation/screens/search/search_screen.dart';
 import 'package:grillsngravy/presentation/screens/splash/splash_screen.dart';
 import 'package:grillsngravy/presentation/screens/checkout/checkout_screen.dart';
+
+import 'data/models/category_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,6 +78,9 @@ class MyApp extends StatelessWidget {
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),
           '/categories': (context) => const CategoriesScreen(),
+          '/category-products': (context) => CategoryProductsScreen(
+            category: ModalRoute.of(context)!.settings.arguments as CategoryModel,
+          ),
           '/search': (context) => const SearchScreen(),
           '/offers': (context) => const OffersScreen(),
           '/cart': (context) => const CartScreen(),

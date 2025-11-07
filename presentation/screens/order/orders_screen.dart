@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:grillsngravy/core/constants/colors.dart';
 import 'package:grillsngravy/data/models/order_model.dart';
+import 'package:grillsngravy/presentation/screens/order/order_detail_screen.dart';
 import 'package:grillsngravy/services/firebase_service.dart';
+import 'package:intl/intl.dart'; // <-- YEH ADD KAREIN
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -31,7 +33,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       body: user == null
           ? _buildNotLoggedInState()
           : StreamBuilder<List<OrderModel>>(
-        stream: FirebaseService.getUserOrders(user.uid),
+        stream: FirebaseService.getUserOrders(user.uid), // <-- YEH FUNCTION AB ID SAHI LAAYEGA
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildLoadingState();
@@ -169,7 +171,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget _buildOrderItem(OrderModel order) {
     // Safe order ID display - handles short IDs
     String getOrderDisplayId() {
-      if (order.id.isEmpty) return 'N/A';
+      if (order.id.isEmpty) return 'N/A'; // <-- AB YEH NAHI HONA CHAHIYE
       // Use the full ID if it's short, otherwise take first 8 characters
       return order.id.length <= 8 ? order.id : order.id.substring(0, 8).toUpperCase();
     }
@@ -196,7 +198,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Order #${getOrderDisplayId()}',
+                'Order #${getOrderDisplayId()}', // <-- AB SAHI ID AAYEGI
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -234,7 +236,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
           // Order Date
           Text(
-            'Placed on ${_formatDate(order.createdAt)}',
+            'Placed on ${_formatDate(order.createdAt)}', // <-- BEHTAR FORMAT
             style: GoogleFonts.poppins(
               fontSize: 12,
               color: AppColors.grey,
@@ -305,10 +307,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () {
-                // Navigate to order details
-                // Navigator.push(context, MaterialPageRoute(
-                //   builder: (context) => OrderDetailScreen(order: order),
-                // ));
+                // Navigate to order details - AB YE WORK KAREGA
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OrderDetailScreen(order: order),
+                  ),
+                );
               },
               child: Text(
                 'View Details',
@@ -339,7 +344,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  // YEH BEHTAR FUNCTION HAI
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} at ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    // Format: 12/Nov/2025 at 10:30 AM
+    return DateFormat('dd/MMM/yyyy \'at\' hh:mm a').format(date);
   }
 }

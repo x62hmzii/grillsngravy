@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:grillsngravy/core/constants/colors.dart';
 import 'package:grillsngravy/core/constants/strings.dart';
+import 'package:grillsngravy/presentation/screens/about/about_us_screen.dart';
+import 'package:grillsngravy/presentation/screens/myadress/address_screen.dart';
+import 'package:grillsngravy/presentation/screens/privacypolicy/privacy_policy_screen.dart';
 import 'package:grillsngravy/services/firebase_service.dart';
 
 class SideDrawer extends StatelessWidget {
@@ -129,7 +132,7 @@ class SideDrawer extends StatelessWidget {
                       const SizedBox(height: 12),
                       GestureDetector(
                         onTap: () {
-                          _makePhoneCall();
+                          _makePhoneCall(context); // <-- YAHAN CONTEXT PASS KAREIN
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -186,7 +189,10 @@ class SideDrawer extends StatelessWidget {
                     title: 'My Addresses',
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigate to addresses screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddressScreen()),
+                      );
                     },
                   ),
                   const SizedBox(height: 8),
@@ -199,15 +205,10 @@ class SideDrawer extends StatelessWidget {
                   title: 'About Grills & Gravy',
                   onTap: () {
                     Navigator.pop(context);
-                    // Navigate to about us screen
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.help_outline,
-                  title: 'Help & FAQs',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to help screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AboutUsScreen()),
+                    );
                   },
                 ),
 
@@ -218,15 +219,10 @@ class SideDrawer extends StatelessWidget {
                   title: 'Privacy Policy',
                   onTap: () {
                     Navigator.pop(context);
-                    // Navigate to privacy policy screen
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.description_outlined,
-                  title: 'Terms & Conditions',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to terms screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
+                    );
                   },
                 ),
 
@@ -251,7 +247,7 @@ class SideDrawer extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Ver. 1.0.0',
+                            'Ver. 1.0.0', // Aap isay package_info se bhi la sakte hain
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               color: AppColors.greyDark,
@@ -281,6 +277,8 @@ class SideDrawer extends StatelessWidget {
             ),
             child: isLoggedIn
                 ? Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   'Logged in as $userEmail',
@@ -295,7 +293,9 @@ class SideDrawer extends StatelessWidget {
                 const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: () {
+                    // Pehle drawer band karein
                     Navigator.pop(context);
+                    // Phir logout ka function call karein
                     _logout(context);
                   },
                   style: OutlinedButton.styleFrom(
@@ -375,7 +375,7 @@ class SideDrawer extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20), // Thori padding
       leading: Icon(
         icon,
         size: 20,
@@ -401,8 +401,9 @@ class SideDrawer extends StatelessWidget {
   void _logout(BuildContext context) async {
     try {
       await FirebaseService.signOut();
-      // Clear cart when logging out
-      // You might want to add this to your CartProvider
+
+      // Check karein ke context abhi bhi valid hai
+      if (!context.mounted) return;
 
       // Navigate to auth screen and clear all routes
       Navigator.pushNamedAndRemoveUntil(
@@ -418,6 +419,7 @@ class SideDrawer extends StatelessWidget {
         ),
       );
     } catch (e) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Logout failed: ${e.toString()}'),
@@ -427,18 +429,18 @@ class SideDrawer extends StatelessWidget {
     }
   }
 
-  void _makePhoneCall() {
-    // Implement phone call functionality
-    // You can use url_launcher package for this
+  // YEH FUNCTION AB CONTEXT LETA HAI
+  void _makePhoneCall(BuildContext context) {
+    // Implement phone call functionality using url_launcher
     // const phoneNumber = 'tel:+1234567890';
     // launchUrl(Uri.parse(phoneNumber));
 
     // For now, show a dialog
     showDialog(
-      context: _getContext(),
+      context: context, // <-- DIRECT CONTEXT ISTEMAL KAREIN
       builder: (context) => AlertDialog(
         title: const Text('Contact Us'),
-        content: const Text('Call us at: +1 234 567 890\nWe are available 24/7 for your queries.'),
+        content: const Text('Call us at: +84 968 607 864\nWe are available 24/7 for your queries.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -447,16 +449,5 @@ class SideDrawer extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  // Helper method to get context for dialogs
-  BuildContext _getContext() {
-    // This is a workaround to get context for dialogs
-    // In a real app, you might want to pass context differently
-    return Navigator.of(_getKey().currentContext!).context;
-  }
-
-  GlobalKey<NavigatorState> _getKey() {
-    return GlobalKey<NavigatorState>();
   }
 }

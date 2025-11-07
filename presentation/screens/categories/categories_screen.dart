@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:grillsngravy/core/constants/colors.dart';
 import 'package:grillsngravy/data/models/category_model.dart';
+import 'package:grillsngravy/presentation/screens/categories/category_products_screen.dart';
 import 'package:grillsngravy/presentation/widgets/bottom_nav_bar.dart';
 import 'package:grillsngravy/services/firebase_service.dart';
 
@@ -298,11 +299,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _navigateToCategoryProducts(CategoryModel category) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${category.name}'),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategoryProductsScreen(category: category),
       ),
     );
   }

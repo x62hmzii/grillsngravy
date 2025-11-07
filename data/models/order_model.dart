@@ -29,7 +29,6 @@ class OrderModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'userId': userId,
       'items': items.map((item) => item.toMap()).toList(),
       'subtotal': subtotal,

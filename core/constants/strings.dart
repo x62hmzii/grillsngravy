@@ -36,15 +36,11 @@ class AppStrings {
 
   static const String myProfile = 'My Profile';
   static const String myOrders = 'My Orders';
-  static const String favorites = 'Favorites';
   static const String myAddresses = 'My Addresses';
   static const String aboutUs = 'About Us';
-  static const String helpFAQs = 'Help & FAQs';
   static const String contactUs = 'Contact Us';
   static const String privacyPolicy = 'Privacy Policy';
   static const String termsConditions = 'Terms & Conditions';
-  static const String returnsRefunds = 'Returns & Refunds';
-  static const String feedback = 'Feedback';
   static const String appVersion = 'App Version';
   static const String loginRegister = 'Login / Register';
 }

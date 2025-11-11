@@ -61,6 +61,35 @@ class OrderModel {
       shippingAddress: ShippingAddress.fromMap(map['shippingAddress']),
     );
   }
+
+  // ✅ ADD THIS COPY METHOD (Line 55 ke baad add karein)
+  OrderModel copyWith({
+    String? id,
+    String? userId,
+    List<OrderItem>? items,
+    double? subtotal,
+    double? deliveryFee,
+    double? total,
+    String? status,
+    String? paymentMethod,
+    DateTime? createdAt,
+    DateTime? deliveredAt,
+    ShippingAddress? shippingAddress,
+  }) {
+    return OrderModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      items: items ?? this.items,
+      subtotal: subtotal ?? this.subtotal,
+      deliveryFee: deliveryFee ?? this.deliveryFee,
+      total: total ?? this.total,
+      status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      createdAt: createdAt ?? this.createdAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      shippingAddress: shippingAddress ?? this.shippingAddress,
+    );
+  }
 }
 
 class OrderItem {

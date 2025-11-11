@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:grillsngravy/data/models/cart_model.dart';
 import 'package:grillsngravy/presentation/screens/order/order_confirmation_screen.dart';
@@ -42,6 +43,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _loadUserData();
     _loadSavedAddress();
     _getCurrentLocation();
+    _listenToAppSettings();
+  }
+
+  void _listenToAppSettings() {
+    FirebaseService.getAppSettings().listen((settings) {
+      if (mounted) {
+        setState(() {
+          _appSettings = settings;
+        });
+      }
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -55,7 +67,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       }
     } catch (e) {
-      print('Error loading user data: $e');
+      // Handle error silently
     }
   }
 
@@ -74,6 +86,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       });
     }
   }
+
+  Map<String, dynamic> _appSettings = {
+    'deliveryFee': 100.0,
+    'taxRate': 16.0,
+    'preparationTime': 30,
+  };
 
   void _fillAddressForm(ShippingAddress address) {
     _fullNameController.text = address.fullName;
@@ -103,7 +121,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       });
     } catch (e) {
-      print('Error getting location: $e');
       // Fallback to default values
       setState(() {
         _cityController.text = 'Sahiwal';
@@ -122,9 +139,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           (sum, item) => sum + (item.product.price * item.quantity)
   );
 
-  double get _deliveryFee => 100.0;
+  double get _deliveryFee => _appSettings['deliveryFee'] ?? 100.0;
 
   double get _total => _subtotal + _deliveryFee;
+
+  int get _preparationTime => _appSettings['preparationTime'] ?? 30;
+
+  String get _deliveryTimeText {
+    final time = _preparationTime;
+    return '$time-${time + 15} minutes';
+  }
 
   Future<void> _placeOrder() async {
     if (!_formKey.currentState!.validate()) return;
@@ -186,6 +210,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       // Save order to Firebase
       final orderId = await FirebaseService.createOrder(order);
+
+      // ✅ FIXED: Send notification with proper data
+      try {
+        final callable = FirebaseFunctions.instance.httpsCallable('sendAdminOrderNotification');
+        await callable.call(<String, dynamic>{
+          'orderId': orderId,
+          'customerName': shippingAddress.fullName,
+          'totalAmount': _total,
+          'itemsCount': widget.cartItems.fold(0, (sum, item) => sum + item.quantity),
+        });
+        print('✅ Notification sent for order: $orderId');
+      } catch (notificationError) {
+        print('⚠️ Notification failed: $notificationError');
+        // Continue with order placement even if notification fails
+      }
 
       // Clear cart
       await context.read<CartProvider>().clearCart();
@@ -258,40 +297,56 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildCheckoutForm() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order Summary
-            _buildOrderSummary(),
-            const SizedBox(height: 24),
-
-            // Delivery Information
-            _buildDeliverySection(),
-            const SizedBox(height: 24),
-
-            // Order Items
-            _buildOrderItems(),
-            const SizedBox(height: 24),
-
-            // Place Order Button
-            CustomButton(
-              text: 'Place Order - ₫ ${_total.toInt()}',
-              onPressed: _placeOrder,
-              isLoading: _isLoading,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: constraints.maxWidth > 600 ? 24 : 16,
+            vertical: 16,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
             ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Order Summary
+                  _buildOrderSummary(),
+                  const SizedBox(height: 24),
+
+                  // Delivery Information
+                  _buildDeliverySection(),
+                  const SizedBox(height: 24),
+
+                  // Order Items
+                  _buildOrderItems(),
+                  const SizedBox(height: 24),
+
+                  // Place Order Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      text: 'Place Order - ₫ ${_total.toInt()}',
+                      onPressed: _placeOrder,
+                      isLoading: _isLoading,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildOrderSummary() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -319,6 +374,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             isTotal: true,
           ),
           const SizedBox(height: 8),
+
+          // Delivery time information
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.access_time,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Estimated delivery: $_deliveryTimeText',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+
           Text(
             'Payment: Cash on Delivery',
             style: GoogleFonts.poppins(
@@ -333,34 +420,46 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: isTotal ? 15 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-              color: AppColors.onBackground,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: isTotal ? 15 : 14,
+                    fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+                    color: AppColors.onBackground,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    fontSize: isTotal ? 16 : 14,
+                    fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+                    color: isTotal ? AppColors.primary : AppColors.onBackground,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-              color: isTotal ? AppColors.primary : AppColors.onBackground,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildDeliverySection() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -394,7 +493,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           _fillAddressForm(_savedAddress!);
                         } else {
                           _clearForm();
-                          _getCurrentLocation(); // Reload location when not using saved address
+                          _getCurrentLocation();
                         }
                       },
                       activeColor: AppColors.primary,
@@ -417,7 +516,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           // Address Form
           if (!_useSavedAddress) ...[
-            // Name and Phone (Auto-filled from user data)
+            // Name and Phone
             CustomTextField(
               controller: _fullNameController,
               labelText: 'Full Name',
@@ -447,25 +546,49 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Location Auto-fill Section
-            Row(
-              children: [
-                Expanded(
-                  child: _buildReadOnlyTextField(
-                    controller: _cityController,
-                    labelText: 'City',
-                    icon: Icons.location_city_outlined,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildReadOnlyTextField(
-                    controller: _areaController,
-                    labelText: 'Area/Town',
-                    icon: Icons.place_outlined,
-                  ),
-                ),
-              ],
+            // Location Auto-fill Section - Responsive layout
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth > 500) {
+                  // Horizontal layout for wider screens
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _buildReadOnlyTextField(
+                          controller: _cityController,
+                          labelText: 'City',
+                          icon: Icons.location_city_outlined,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildReadOnlyTextField(
+                          controller: _areaController,
+                          labelText: 'Area/Town',
+                          icon: Icons.place_outlined,
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  // Vertical layout for narrower screens
+                  return Column(
+                    children: [
+                      _buildReadOnlyTextField(
+                        controller: _cityController,
+                        labelText: 'City',
+                        icon: Icons.location_city_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildReadOnlyTextField(
+                        controller: _areaController,
+                        labelText: 'Area/Town',
+                        icon: Icons.place_outlined,
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
             const SizedBox(height: 8),
             Align(
@@ -507,6 +630,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ] else if (_savedAddress != null) ...[
             // Show saved address
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.05),
@@ -549,7 +673,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // Custom read-only text field
   Widget _buildReadOnlyTextField({
     required TextEditingController controller,
     required String labelText,
@@ -563,7 +686,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         border: const OutlineInputBorder(),
         filled: true,
         fillColor: AppColors.greyLight.withOpacity(0.3),
-        enabled: false, // This makes it read-only
+        enabled: false,
       ),
       style: GoogleFonts.poppins(
         color: AppColors.onBackground,
@@ -571,7 +694,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // Custom house number field with onChanged
   Widget _buildHouseNumberField() {
     return TextFormField(
       controller: _houseNoController,
@@ -584,7 +706,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         color: AppColors.onBackground,
       ),
       onChanged: (value) {
-        // Update complete address when house number is entered
         if (value.isNotEmpty) {
           _addressController.text =
           '$value, ${_areaController.text}, ${_cityController.text}';
@@ -596,7 +717,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // Custom address field with maxLines
   Widget _buildAddressField() {
     return TextFormField(
       controller: _addressController,
@@ -620,6 +740,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildOrderItems() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -645,71 +766,79 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildOrderItem(CartItem item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          // Product Image
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: CachedNetworkImage(
-              imageUrl: item.product.imageUrl,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                width: 50,
-                height: 50,
-                color: AppColors.greyLight,
-              ),
-              errorWidget: (context, url, error) => Container(
-                width: 50,
-                height: 50,
-                color: AppColors.greyLight,
-                child: const Icon(Icons.error_outline, size: 20),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Product Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.product.name,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.onBackground,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product Image
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CachedNetworkImage(
+                  imageUrl: item.product.imageUrl,
+                  width: constraints.maxWidth > 400 ? 60 : 50,
+                  height: constraints.maxWidth > 400 ? 60 : 50,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    width: constraints.maxWidth > 400 ? 60 : 50,
+                    height: constraints.maxWidth > 400 ? 60 : 50,
+                    color: AppColors.greyLight,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Qty: ${item.quantity} × ₫ ${item.product.price.toInt()}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: AppColors.grey,
+                  errorWidget: (context, url, error) => Container(
+                    width: constraints.maxWidth > 400 ? 60 : 50,
+                    height: constraints.maxWidth > 400 ? 60 : 50,
+                    color: AppColors.greyLight,
+                    child: const Icon(Icons.error_outline, size: 20),
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+              const SizedBox(width: 12),
 
-          // Item Total
-          Text(
-            '₫ ${(item.product.price * item.quantity).toInt()}',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-            ),
+              // Product Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.product.name,
+                      style: GoogleFonts.poppins(
+                        fontSize: constraints.maxWidth > 400 ? 15 : 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.onBackground,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Qty: ${item.quantity} × ₫ ${item.product.price.toInt()}',
+                      style: GoogleFonts.poppins(
+                        fontSize: constraints.maxWidth > 400 ? 13 : 12,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Item Total
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(
+                  '₫ ${(item.product.price * item.quantity).toInt()}',
+                  style: GoogleFonts.poppins(
+                    fontSize: constraints.maxWidth > 400 ? 15 : 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -721,8 +850,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _areaController.clear();
     _houseNoController.clear();
     _landmarkController.clear();
-    _loadUserData(); // Reload user data after clearing
-    _getCurrentLocation(); // Reload location after clearing
+    _loadUserData();
+    _getCurrentLocation();
   }
 
   @override

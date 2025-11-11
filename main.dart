@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:grillsngravy/data/models/cart_model.dart';
 import 'package:grillsngravy/presentation/screens/categories/category_products_screen.dart';
 import 'package:grillsngravy/presentation/screens/order/order_confirmation_screen.dart';
@@ -26,10 +27,14 @@ void main() async {
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    print('Firebase initialization failed: $e');
   }
 
   runApp(const MyApp());
+  // Set the orientation to portrait only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 }
 
 class MyApp extends StatelessWidget {
@@ -51,7 +56,6 @@ class MyApp extends StatelessWidget {
             surface: AppColors.background,
             onSurface: AppColors.onBackground,
             error: AppColors.error,
-            background: AppColors.background,
           ),
           useMaterial3: true,
           fontFamily: 'Poppins',

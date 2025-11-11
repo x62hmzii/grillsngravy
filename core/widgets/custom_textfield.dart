@@ -10,6 +10,7 @@ class CustomTextField extends StatelessWidget {
   final VoidCallback? onSuffixIconPressed;
   final bool obscureText;
   final TextInputType keyboardType;
+  final String? hintText;
   final String? Function(String?)? validator;
 
   const CustomTextField({
@@ -18,6 +19,7 @@ class CustomTextField extends StatelessWidget {
     required this.labelText,
     required this.prefixIcon,
     this.suffixIcon,
+    this.hintText, // Add this
     this.onSuffixIconPressed,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
@@ -37,6 +39,7 @@ class CustomTextField extends StatelessWidget {
       ),
       decoration: InputDecoration(
         labelText: labelText,
+        hintText: hintText,
         prefixIcon: Icon(prefixIcon, color: AppColors.grey),
         suffixIcon: suffixIcon != null
             ? IconButton(

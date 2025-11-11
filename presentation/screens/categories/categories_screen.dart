@@ -148,18 +148,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6),
-                      // Category Description
-                      Text(
-                        category.description,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: AppColors.grey,
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                     ],
                   ),
                 ),

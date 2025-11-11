@@ -178,7 +178,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         subtotal: _subtotal,
         deliveryFee: _deliveryFee,
         total: _total,
-        status: 'confirmed',
+        status: 'pending',
         paymentMethod: 'cash_on_delivery',
         createdAt: DateTime.now(),
         shippingAddress: shippingAddress,
@@ -279,7 +279,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             // Place Order Button
             CustomButton(
-              text: 'Place Order - RS ${_total.toInt()}',
+              text: 'Place Order - ₫ ${_total.toInt()}',
               onPressed: _placeOrder,
               isLoading: _isLoading,
             ),
@@ -310,12 +310,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _buildSummaryRow('Subtotal', 'RS ${_subtotal.toInt()}'),
-          _buildSummaryRow('Delivery Fee', 'RS ${_deliveryFee.toInt()}'),
+          _buildSummaryRow('Subtotal', '₫ ${_subtotal.toInt()}'),
+          _buildSummaryRow('Delivery Fee', '₫ ${_deliveryFee.toInt()}'),
           const Divider(height: 20),
           _buildSummaryRow(
             'Total Amount',
-            'RS ${_total.toInt()}',
+            '₫ ${_total.toInt()}',
             isTotal: true,
           ),
           const SizedBox(height: 8),
@@ -689,7 +689,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Qty: ${item.quantity} × RS ${item.product.price.toInt()}',
+                  'Qty: ${item.quantity} × ₫ ${item.product.price.toInt()}',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: AppColors.grey,
@@ -701,7 +701,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           // Item Total
           Text(
-            'RS ${(item.product.price * item.quantity).toInt()}',
+            '₫ ${(item.product.price * item.quantity).toInt()}',
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,

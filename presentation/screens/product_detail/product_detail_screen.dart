@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,7 +20,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   ProductModel? _product;
   bool _isLoading = true;
   int _quantity = 1;
-  StreamSubscription<List<ProductModel>>? _productSubscription;
 
   @override
   void initState() {
@@ -29,36 +27,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     _loadProduct();
   }
 
-  @override
-  void dispose() {
-    _productSubscription?.cancel();
-    super.dispose();
-  }
-
   void _loadProduct() async {
     try {
-      _productSubscription = FirebaseService.getFeaturedProducts().listen(
-            (products) {
-          final product = products.firstWhere(
-                (p) => p.id == widget.productId,
-            orElse: () => products.isNotEmpty ? products.first : _createDummyProduct(),
-          );
+      final product = await FirebaseService.getProductById(widget.productId);
 
-          if (mounted) {
-            setState(() {
-              _product = product;
-              _isLoading = false;
-            });
-          }
-        },
-        onError: (error) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        },
-      );
+      if (mounted) {
+        setState(() {
+          _product = product;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -330,7 +308,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         Row(
           children: [
             Text(
-              'RS ${_product!.price.toInt()}',
+              '₫ ${_product!.price.toInt()}',
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -340,7 +318,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             if (_product!.hasDiscount) ...[
               const SizedBox(width: 8),
               Text(
-                'RS ${_product!.originalPrice!.toInt()}',
+                '₫ ${_product!.originalPrice!.toInt()}',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: AppColors.grey,
@@ -433,7 +411,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             // Add to Cart Button
             Expanded(
               child: CustomButton(
-                text: 'Add to Cart - RS ${(_product!.price * _quantity).toInt()}',
+                text: 'Add to Cart - ₫ ${(_product!.price * _quantity).toInt()}',
                 onPressed: _addToCart,
               ),
             ),

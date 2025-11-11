@@ -158,7 +158,7 @@ class _OffersScreenState extends State<OffersScreen> {
                           Row(
                             children: [
                               Text(
-                                'RS ${product.price.toInt()}',
+                                '₫ ${product.price.toInt()}',
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -171,7 +171,7 @@ class _OffersScreenState extends State<OffersScreen> {
                               // Wrapped the original price Text in Flexible
                                 Flexible( // <-- WIDGET ADDED
                                   child: Text(
-                                    'RS ${product.originalPrice!.toInt()}',
+                                    '₫ ${product.originalPrice!.toInt()}',
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
                                       color: AppColors.grey,

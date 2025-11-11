@@ -132,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const Icon(Icons.search, color: AppColors.grey),
               const SizedBox(width: 12),
               Text(
-                'Search 5000+ products...',
+                'Search 500+ products...',
                 style: GoogleFonts.poppins(
                   color: AppColors.grey,
                   fontSize: 14,

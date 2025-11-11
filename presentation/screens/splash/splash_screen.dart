@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:grillsngravy/core/constants/colors.dart';
 import 'package:grillsngravy/core/constants/strings.dart';
+import 'package:grillsngravy/services/firebase_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,12 +28,21 @@ class _SplashScreenState extends State<SplashScreen>
       curve: Curves.easeInOut,
     );
     _controller.forward();
-    _navigateToNext();
+    _checkAuthenticationStatus();
   }
 
-  void _navigateToNext() {
+  void _checkAuthenticationStatus() {
     Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/auth');
+      // Check if user is already logged in
+      final currentUser = FirebaseService.currentUser;
+
+      if (currentUser != null) {
+        // User is logged in, go directly to home
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        // User is not logged in, go to auth screen
+        Navigator.pushReplacementNamed(context, '/auth');
+      }
     });
   }
 

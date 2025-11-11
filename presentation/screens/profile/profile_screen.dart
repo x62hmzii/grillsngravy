@@ -39,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           setState(() {
             _fullNameController.text = userData.fullName;
             _phoneController.text = userData.phone ?? '';
-            _emailController.text = userData.email;
+            _emailController.text = userData.email!;
           });
         } else {
           // Fallback to auth user data

@@ -204,7 +204,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'RS ${item.product.price.toInt()}',
+                  '₫ ${item.product.price.toInt()}',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -289,12 +289,12 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         children: [
           // Order Summary
-          _buildSummaryRow('Subtotal', 'RS ${cartProvider.subtotal.toInt()}'),
-          _buildSummaryRow('Delivery Fee', 'RS ${cartProvider.deliveryFee.toInt()}'),
+          _buildSummaryRow('Subtotal', '₫ ${cartProvider.subtotal.toInt()}'),
+          _buildSummaryRow('Delivery Fee', '₫ ${cartProvider.deliveryFee.toInt()}'),
           const SizedBox(height: 8),
           _buildSummaryRow(
             'Total',
-            'RS ${cartProvider.total.toInt()}',
+            '₫ ${cartProvider.total.toInt()}',
             isTotal: true,
           ),
           const SizedBox(height: 16),

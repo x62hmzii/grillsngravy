@@ -24,31 +24,36 @@ class OrderDetailScreen extends StatelessWidget {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'pending': // ADD THIS CASE
+        return AppColors.warning; // Yellow/orange for pending
       case 'confirmed':
-      case 'delivered':
-        return AppColors.success;
       case 'preparing':
       case 'ready':
       case 'out_for_delivery':
-        return AppColors.warning; // Keeping warning/blue for in-progress states
+        return AppColors.warning; // Blue for in-progress states
+      case 'delivered':
+        return AppColors.success; // Green for delivered
       case 'cancelled':
       default:
-        return AppColors.error;
+        return AppColors.error; // Red for cancelled
     }
   }
 
   // Simplified Status Index for Timeline (only needs to check if it's confirmed/in-progress)
   int _getStatusIndex(String status) {
     switch (status.toLowerCase()) {
+      case 'pending':
+        return 0; // Pending is the first step
       case 'confirmed':
       case 'preparing':
       case 'ready':
       case 'out_for_delivery':
+        return 1; // In-progress states
       case 'delivered':
-        return 1; // Any status beyond "Placed" is index 1
+        return 2; // Completed
       case 'cancelled':
       default:
-        return 0; // Placed or Cancelled is index 0
+        return 0; // Cancelled shows at start
     }
   }
 
@@ -371,7 +376,7 @@ class OrderDetailScreen extends StatelessWidget {
           _buildDetailTitle('Order Status'),
           const SizedBox(height: 12),
 
-          // Order Placed (Always completed)
+          // Order Placed (Pending) - Always completed
           _buildTimelineDot(
             'Order Placed',
             order.createdAt,
@@ -386,6 +391,16 @@ class OrderDetailScreen extends StatelessWidget {
             order.createdAt,
             isCompleted: _getStatusIndex(order.status) >= 1,
           ),
+
+          // Add delivery step if not cancelled
+          if (order.status.toLowerCase() != 'cancelled') ...[
+            _buildTimelineLine(),
+            _buildTimelineDot(
+              'Delivered',
+              order.deliveredAt ?? order.createdAt,
+              isCompleted: order.status.toLowerCase() == 'delivered',
+            ),
+          ],
         ],
       ),
     );

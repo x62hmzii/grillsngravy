@@ -18,18 +18,15 @@ import 'package:grillsngravy/presentation/screens/product_detail/product_detail_
 import 'package:grillsngravy/presentation/screens/search/search_screen.dart';
 import 'package:grillsngravy/presentation/screens/splash/splash_screen.dart';
 import 'package:grillsngravy/presentation/screens/checkout/checkout_screen.dart';
-
-import 'data/models/category_model.dart';
+import 'package:grillsngravy/data/models/category_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase with error handling
   try {
     await Firebase.initializeApp();
-    print(' Firebase initialized successfully');
   } catch (e) {
-    print(' Firebase initialization failed: $e');
+    print('Firebase initialization failed: $e');
   }
 
   runApp(const MyApp());

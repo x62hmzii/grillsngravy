@@ -6,14 +6,14 @@ enum ButtonVariant { filled, outlined }
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed; // Change to nullable
   final bool isLoading;
   final ButtonVariant variant;
 
   const CustomButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    required this.onPressed, // Keep as required but nullable
     this.isLoading = false,
     this.variant = ButtonVariant.filled,
   });
@@ -25,7 +25,7 @@ class CustomButton extends StatelessWidget {
       height: 56,
       child: variant == ButtonVariant.filled
           ? ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: isLoading ? null : onPressed, // This will work now
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
@@ -33,6 +33,7 @@ class CustomButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          disabledBackgroundColor: AppColors.primary.withOpacity(0.5), // Add disabled color
         ),
         child: isLoading
             ? const SizedBox(
@@ -54,7 +55,7 @@ class CustomButton extends StatelessWidget {
         ),
       )
           : OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: isLoading ? null : onPressed, // This will work now
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary),

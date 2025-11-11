@@ -15,7 +15,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _identifierController = TextEditingController(); // Changed from _emailController
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -25,15 +25,14 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = true);
 
       try {
-        await FirebaseService.signInWithEmail(
-          email: _emailController.text.trim(),
+        // Use the new method that accepts both email and phone
+        await FirebaseService.loginWithEmailOrPhone(
+          identifier: _identifierController.text.trim(),
           password: _passwordController.text,
         );
 
         if (!mounted) return;
-
         Navigator.pushReplacementNamed(context, '/home');
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Login successful!'),
@@ -42,7 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       } catch (e) {
         if (!mounted) return;
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Login failed: ${e.toString()}'),
@@ -68,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _forgotPassword() {
     showDialog(
       context: context,
-      builder: (context) => ForgotPasswordDialog(emailController: _emailController),
+      builder: (context) => ForgotPasswordDialog(identifierController: _identifierController),
     );
   }
 
@@ -110,19 +108,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // Email Field
+                // Email/Phone Field - UPDATED
                 CustomTextField(
-                  controller: _emailController,
-                  labelText: AppStrings.email,
-                  prefixIcon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
+                  controller: _identifierController,
+                  labelText: 'Email or Phone Number', // Updated label
+                  hintText: 'Enter your email or phone number',
+                  prefixIcon: Icons.person_outline,
+                  keyboardType: TextInputType.text, // Changed to text to accept both
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return 'Please enter your email or phone number';
                     }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+
+                    // Check if it's email or phone
+                    final isEmail = value.contains('@');
+                    final isPhone = RegExp(r'^[0-9+\-\s()]{10,}$').hasMatch(value.replaceAll(RegExp(r'\D'), ''));
+
+                    if (!isEmail && !isPhone) {
+                      return 'Please enter a valid email or phone number';
                     }
+
                     return null;
                   },
                 ),
@@ -213,37 +218,52 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 }
 
-// Forgot Password Dialog
+// Updated Forgot Password Dialog
 class ForgotPasswordDialog extends StatefulWidget {
-  final TextEditingController emailController;
+  final TextEditingController identifierController;
 
-  const ForgotPasswordDialog({super.key, required this.emailController});
+  const ForgotPasswordDialog({super.key, required this.identifierController});
 
   @override
   State<ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
 }
 
 class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
-  final _emailController = TextEditingController();
+  final _identifierController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _emailController.text = widget.emailController.text;
+    _identifierController.text = widget.identifierController.text;
   }
 
   Future<void> _resetPassword() async {
-    if (_emailController.text.isEmpty || !_emailController.text.contains('@')) {
+    final identifier = _identifierController.text.trim();
+
+    // Check if identifier is email or phone
+    final isEmail = identifier.contains('@');
+
+    if (!isEmail) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter a valid email address'),
+          content: Text('Password reset is only available for email accounts'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (_identifierController.text.isEmpty || !_identifierController.text.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email address for password reset'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -253,7 +273,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
     setState(() => _isLoading = true);
 
     try {
-      await FirebaseService.resetPassword(_emailController.text.trim());
+      await FirebaseService.resetPassword(_identifierController.text.trim());
 
       if (!mounted) return;
 
@@ -294,7 +314,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Enter your email address and we\'ll send you a link to reset your password.',
+            'Enter your email address to reset your password. Phone number accounts need to contact support.',
             style: GoogleFonts.poppins(
               fontSize: 14,
               color: AppColors.grey,
@@ -302,7 +322,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
           ),
           const SizedBox(height: 16),
           CustomTextField(
-            controller: _emailController,
+            controller: _identifierController,
             labelText: 'Email Address',
             prefixIcon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
@@ -330,7 +350,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     super.dispose();
   }
 }

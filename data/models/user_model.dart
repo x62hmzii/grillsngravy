@@ -35,7 +35,10 @@ class UserModel {
     if (map['createdAt'] is Timestamp) {
       timestamp = map['createdAt'] as Timestamp;
     } else if (map['createdAt'] is Map) {
-      timestamp = Timestamp(map['createdAt']['_seconds'], map['createdAt']['_nanoseconds']);
+      timestamp = Timestamp(
+        map['createdAt']['_seconds'],
+        map['createdAt']['_nanoseconds'],
+      );
     } else {
       timestamp = Timestamp.now();
     }
@@ -47,6 +50,24 @@ class UserModel {
       phone: map['phone']?.toString(),
       createdAt: timestamp.toDate(),
       isAdmin: map['isAdmin'] ?? false,
+    );
+  }
+
+  UserModel copyWith({
+    String? id,
+    String? email,
+    String? fullName,
+    String? phone,
+    DateTime? createdAt,
+    bool? isAdmin,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      fullName: fullName ?? this.fullName,
+      phone: phone ?? this.phone,
+      createdAt: createdAt ?? this.createdAt,
+      isAdmin: isAdmin ?? this.isAdmin,
     );
   }
 }

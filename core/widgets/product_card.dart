@@ -128,7 +128,7 @@ class ProductCard extends StatelessWidget {
                               if (product.hasDiscount)
                                 Text(
                                   // Using toStringAsFixed(0) for a cleaner integer display
-                                  'RS ${product.originalPrice!.toStringAsFixed(0)}',
+                                  '₫ ${product.originalPrice!.toStringAsFixed(0)}',
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     color: AppColors.grey,
@@ -141,7 +141,7 @@ class ProductCard extends StatelessWidget {
                               // Current Price (Discounted or Regular)
                               Text(
                                 // Using toStringAsFixed(0) for a cleaner integer display
-                                'RS ${product.price.toStringAsFixed(0)}',
+                                '₫ ${product.price.toStringAsFixed(0)}',
                                 style: GoogleFonts.poppins(
                                   fontSize: product.hasDiscount ? 14 : 16,
                                   fontWeight: FontWeight.bold,

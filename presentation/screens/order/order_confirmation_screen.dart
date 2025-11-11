@@ -48,7 +48,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
               // Success Message
               Text(
-                'Order Confirmed!',
+                'Order Placed Successfully!',
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

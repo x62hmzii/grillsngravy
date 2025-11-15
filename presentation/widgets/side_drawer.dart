@@ -3,10 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:grillsngravy/core/constants/colors.dart';
 import 'package:grillsngravy/core/constants/strings.dart';
 import 'package:grillsngravy/presentation/screens/about/about_us_screen.dart';
+import 'package:grillsngravy/presentation/screens/menu/menu_screen.dart';
 import 'package:grillsngravy/presentation/screens/myadress/address_screen.dart';
 import 'package:grillsngravy/presentation/screens/privacypolicy/privacy_policy_screen.dart';
 import 'package:grillsngravy/services/firebase_service.dart';
-
 class SideDrawer extends StatelessWidget {
   const SideDrawer({super.key});
 
@@ -198,6 +198,22 @@ class SideDrawer extends StatelessWidget {
                   const SizedBox(height: 8),
                 ],
 
+                // --- NAYA SECTION YAHAN ADD HUA HAI ---
+                _buildSectionHeader('Features'),
+                _buildDrawerItem(
+                  icon: Icons.menu_book_outlined, // Naya Icon
+                  title: 'Our Menu', // Naya Title
+                  onTap: () {
+                    Navigator.pop(context); // Pehle drawer band karein
+                    Navigator.push( // Phir nai screen par jayein
+                      context,
+                      MaterialPageRoute(builder: (context) => const MenuScreen()),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8), // Thora sa space
+                // --- NAYA SECTION END ---
+
                 // App Information Section
                 _buildSectionHeader('About Us'),
                 _buildDrawerItem(
@@ -224,41 +240,6 @@ class SideDrawer extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
                     );
                   },
-                ),
-
-                const SizedBox(height: 20),
-
-                // App Version
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      const Divider(),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'App Version',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: AppColors.grey,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          Text(
-                            'Ver. 1.0.0', // Aap isay package_info se bhi la sakte hain
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: AppColors.greyDark,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
                 ),
               ],
             ),

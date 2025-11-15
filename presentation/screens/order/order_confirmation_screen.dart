@@ -168,12 +168,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                             constraints: constraints,
                           ),
                           SizedBox(height: constraints.maxWidth > 600 ? 16 : 12),
-                          _buildInfoRow(
-                            icon: Icons.phone_outlined,
-                            title: 'Contact Support',
-                            value: 'Call if any issue',
-                            constraints: constraints,
-                          ),
                         ],
                       ),
                     ),

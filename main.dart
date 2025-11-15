@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:grillsngravy/data/models/cart_model.dart';
 import 'package:grillsngravy/presentation/screens/categories/category_products_screen.dart';
+import 'package:grillsngravy/presentation/screens/menu/menu_screen.dart';
 import 'package:grillsngravy/presentation/screens/order/order_confirmation_screen.dart';
 import 'package:grillsngravy/presentation/screens/order/orders_screen.dart';
 import 'package:grillsngravy/presentation/screens/profile/profile_screen.dart';
@@ -86,6 +87,7 @@ class MyApp extends StatelessWidget {
           '/offers': (context) => const OffersScreen(),
           '/cart': (context) => const CartScreen(),
           '/profile': (context) => const ProfileScreen(),
+          '/menu': (context) => const MenuScreen(),
           '/orders': (context) => const OrdersScreen(),
           '/checkout': (context) => CheckoutScreen(
             cartItems: ModalRoute.of(context)!.settings.arguments as List<CartItem>,

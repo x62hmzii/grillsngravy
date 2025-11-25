@@ -37,13 +37,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Fixed navigation - don't change index when navigating to other screens
   void _onTabTapped(int index) {
-    if (index == _currentIndex) return; // Already on this tab
+    if (index == _currentIndex) return;
 
     switch (index) {
       case 0:
-      // Already on home, do nothing
         break;
       case 1:
         Navigator.push(
@@ -111,9 +109,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // ... (Keep all your existing _build methods exactly as they are)
-  // They are working perfectly, no changes needed
 
   Widget _buildSearchBar() {
     return Padding(
@@ -194,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
               final categories = snapshot.data!;
 
               return SizedBox(
-                height: 100,
+                height: 110, // Increased height to accommodate text properly
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: categories.length,
@@ -213,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCategoriesShimmer() {
     return SizedBox(
-      height: 100,
+      height: 110,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: 5,
@@ -255,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return SizedBox(
-      height: 100,
+      height: 110,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: defaultCategories.length,
@@ -281,16 +276,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  category['name'] as String,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.onBackground,
+                SizedBox(
+                  width: 80,
+                  child: Text(
+                    category['name'] as String,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.onBackground,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -343,13 +342,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 8),
             SizedBox(
-              height: 32,
+              width: 80,
               child: Text(
                 category.name,
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: AppColors.onBackground,
+                  height: 1.2,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -581,7 +581,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Banner Controller and Carousel (keep as is)
+// Banner Controller and Carousel
 class BannerController {
   final PageController pageController = PageController();
   Timer? _timer;

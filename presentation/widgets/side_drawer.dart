@@ -186,7 +186,7 @@ class SideDrawer extends StatelessWidget {
                   ),
                   _buildDrawerItem(
                     icon: Icons.location_on_outlined,
-                    title: 'My Addresses',
+                    title: 'Our Address',
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -202,7 +202,7 @@ class SideDrawer extends StatelessWidget {
                 _buildSectionHeader('Features'),
                 _buildDrawerItem(
                   icon: Icons.menu_book_outlined, // Naya Icon
-                  title: 'Our Menu', // Naya Title
+                  title: 'Menu', // Naya Title
                   onTap: () {
                     Navigator.pop(context); // Pehle drawer band karein
                     Navigator.push( // Phir nai screen par jayein

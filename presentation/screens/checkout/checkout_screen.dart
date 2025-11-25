@@ -546,7 +546,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Location Auto-fill Section - Responsive layout
+            // Location Fields - NOW EDITABLE
             LayoutBuilder(
               builder: (context, constraints) {
                 if (constraints.maxWidth > 500) {
@@ -554,18 +554,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   return Row(
                     children: [
                       Expanded(
-                        child: _buildReadOnlyTextField(
+                        child: CustomTextField(
                           controller: _cityController,
                           labelText: 'City',
-                          icon: Icons.location_city_outlined,
+                          prefixIcon: Icons.location_city_outlined,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter city';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _buildReadOnlyTextField(
+                        child: CustomTextField(
                           controller: _areaController,
                           labelText: 'Area/Town',
-                          icon: Icons.place_outlined,
+                          prefixIcon: Icons.place_outlined,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter area';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                     ],
@@ -574,16 +586,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   // Vertical layout for narrower screens
                   return Column(
                     children: [
-                      _buildReadOnlyTextField(
+                      CustomTextField(
                         controller: _cityController,
                         labelText: 'City',
-                        icon: Icons.location_city_outlined,
+                        prefixIcon: Icons.location_city_outlined,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter city';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
-                      _buildReadOnlyTextField(
+                      CustomTextField(
                         controller: _areaController,
                         labelText: 'Area/Town',
-                        icon: Icons.place_outlined,
+                        prefixIcon: Icons.place_outlined,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter area';
+                          }
+                          return null;
+                        },
                       ),
                     ],
                   );
@@ -669,27 +693,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildReadOnlyTextField({
-    required TextEditingController controller,
-    required String labelText,
-    required IconData icon,
-  }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        prefixIcon: Icon(icon),
-        border: const OutlineInputBorder(),
-        filled: true,
-        fillColor: AppColors.greyLight.withOpacity(0.3),
-        enabled: false,
-      ),
-      style: GoogleFonts.poppins(
-        color: AppColors.onBackground,
       ),
     );
   }
